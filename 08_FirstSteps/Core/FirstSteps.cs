@@ -16,45 +16,54 @@ namespace Fusee.Tutorial.Core
 {
     public class FirstSteps : RenderCanvas
     {
-
         private SceneContainer _scene;
         private SceneRenderer _sceneRenderer;
 
-        private float _camAngle = 0;
-
         private SceneNodeContainer[] _cubes;
+
+        private float _camAngle = -25;
 
         // Init is called on startup. 
         public override void Init()
         {
-            // Set the clear color for the backbuffer to white (100% intentsity in all color channels R, G, B, A).
-            RC.ClearColor = new float4(1, 1, 1, 1);
+            // Set the clear color for the backbuffer to pinkish light gray.
+            RC.ClearColor = new float4(1, 0.90f, 0.90f, 1);
 
-            // Create five cubes
-            _cubes = new SceneNodeContainer[5];
+            // Create three cubes
+            _cubes = new SceneNodeContainer[3];
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
-                var cubeTransform = new TransformComponent { Scale = new float3(1, 1, 1), Translation = new float3((i-2)*15, 0, 0) };
+                // Transform of cube
+                var cubeTransform = new TransformComponent
+                {
+                    Scale = new float3(1.5f * (i + 1), 1.5f * (i + 1), 1.5f * (i + 1)),
+                    Translation = new float3(35.0f * (i/2.0f - 0.5f), 0, 0)
+                };
+
+                // Material of cube
                 var cubeMaterial = new MaterialComponent
                 {
-                    Diffuse = new MatChannelContainer { Color = new float3(1 - (i/4.0f), 0.5f, i/4.0f) },
+                    Diffuse = new MatChannelContainer { Color = new float3(1, 0.5f, 0.5f) },
                     Specular = new SpecularChannelContainer { Color = float3.One, Shininess = 4 }
                 };
-                var cubeMesh = SimpleMeshes.CreateCuboid(new float3(10, 10, 10));
+
+                // Mesh of cube
+                var cubeMesh = SimpleMeshes.CreateCuboid(new float3(7, 7, 7));
 
                 var cubeNode = new SceneNodeContainer();
                 cubeNode.Components = new List<SceneComponentContainer>();
                 cubeNode.Components.Add(cubeTransform);
                 cubeNode.Components.Add(cubeMaterial);
                 cubeNode.Components.Add(cubeMesh);
-
                 _cubes[i] = cubeNode;
             }
 
-            // Create the scene containing the cubes
+            // Create the scene
             _scene = new SceneContainer();
             _scene.Children = new List<SceneNodeContainer>();
+
+            // Add all cubes into that scene
             foreach (SceneNodeContainer cube in _cubes)
             {
                 _scene.Children.Add(cube);
@@ -70,25 +79,24 @@ namespace Fusee.Tutorial.Core
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
-            // Animate the cubes
-            for (int i = 0; i < 5; i++)
+            // Animate the cube
+            for (int i = 0; i < 3; i++)
             {
-                _cubes[i].GetTransform().Translation = new float3((i - 2) * 15, 15 * M.Sin((3 * TimeSinceStart) + (i * M.Pi / 4)), 0);
-                _cubes[i].GetTransform().Rotation = new float3(0, 3 * TimeSinceStart, 0);
-                _cubes[i].GetTransform().Scale = new float3(0.4f * M.Sin(TimeSinceStart + (i * M.Pi / 4)) + 0.6f, 0.4f * M.Sin(TimeSinceStart + (i * M.Pi / 4)) + 0.6f, 0.4f * M.Sin(TimeSinceStart + (i * M.Pi / 4)) + 0.6f);
-                _cubes[i].GetMaterial().Diffuse = new MatChannelContainer { Color = new float3(1 - (i / 4.0f), 0.5f * M.Sin(3 * TimeSinceStart) + 0.5f, i / 4.0f) };
+                _cubes[i].GetTransform().Translation = new float3(35.0f * (i/2.0f - 0.5f), (5 + 5 * i) * Abs(M.Sin((2 * TimeSinceStart) + (M.Pi / 4))), 0);
+                _cubes[i].GetTransform().Rotation = new float3(0, 2 * TimeSinceStart, 0);
+                _cubes[i].GetTransform().Scale = new float3(1, 1 + 0.2f * Abs(M.Sin((2 * TimeSinceStart) + (M.Pi / 4))), 1);
             }
 
-            // Animate the camera angle
-            _camAngle = _camAngle + 10.0f * M.Pi/180.0f * DeltaTime;
+            // Animate the angle of the camera
+            _camAngle = _camAngle + 5.0f * M.Pi/180.0f * DeltaTime;
 
-            // Setup the camera
-            RC.View = float4x4.CreateTranslation(0, 0, 100) * float4x4.CreateRotationY(_camAngle);
+            // Setup the camera 
+            RC.View = float4x4.CreateTranslation(0, -10, 50) * float4x4.CreateRotationY(_camAngle);
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);
 
-            // Swap buffers: Show the contents of the backbuffer (containing the currently rerndered farame) on the front buffer.
+            // Swap buffers: Show the contents of the backbuffer (containing the currently rendered farame) on the front buffer.
             Present();
         }
 
